@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1092033191109",
+    "project_id": "smart-locator-app",
+    "storage_bucket": "smart-locator-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1092033191109:android:100c100fc70d3786f6e4ac",
+        "android_client_info": {
+          "package_name": "com.example.demo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAcXyS3iXQiOU-VXpDbH90MPwjUbSRmMYw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
