@@ -555,6 +555,71 @@ class _ShopkeeperDashboardState extends State<ShopkeeperDashboard>
       },
     );
   }
+ 
+  Widget _productPlaceholder() => Container(
+    width: 64, height: 64,
+    decoration: BoxDecoration(color: const Color(0xFFF0F4FF), borderRadius: BorderRadius.circular(10)),
+    child: const Icon(Icons.image_outlined, color: Color(0xFF0E2A47), size: 28),
+  );
+ 
+  Widget _iconBtn(IconData icon, Color color, VoidCallback onTap) => InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(8),
+    child: Padding(padding: const EdgeInsets.all(6), child: Icon(icon, color: color, size: 20)),
+  );
+ 
+  // ✅ Updated review button
+  Widget _reviewButton() {
+    if (_shopData == null || _shopData!['status'] != 'verified') return const SizedBox.shrink();
+    return _actionButton(
+      icon: Icons.rate_review_outlined,
+      label: 'Manage Reviews',
+      bgColor: const Color(0xFF0E2A47),
+      onPressed: () => Navigator.push(context,
+          MaterialPageRoute(builder: (_) => ShopReviewsPage(shopId: _shopId!))),
+    );
+  }
+ 
+  // ✅ Updated billing button
+  Widget _billingButton() {
+    if (_shopData == null || _shopData!['status'] != 'verified') return const SizedBox.shrink();
+    final Color btnColor = _billingPaymentStatus == 'verified'
+        ? Colors.green.shade600
+        : _billingPaymentStatus == 'pending_verification'
+            ? Colors.orange.shade600
+            : Colors.red.shade600;
+    final String btnLabel = _billingPaymentStatus == 'pending_verification'
+        ? 'Billing — Verification Pending'
+        : _billingPaymentStatus == 'verified'
+            ? 'Billing — Paid ✓'
+            : 'Monthly Billing — Pay Now';
+    return _actionButton(
+      icon: Icons.account_balance_wallet_outlined,
+      label: btnLabel,
+      bgColor: btnColor,
+      badgeDot: _billingPaymentStatus == 'unpaid' || _billingPaymentStatus == 'rejected',
+      onPressed: () => Navigator.push(context,
+          MaterialPageRoute(builder: (_) => ShopkeeperBillingScreen())),
+    );
+  }
+ 
+  // ✅ Updated orders button
+  Widget _ordersButton() {
+    if (_shopData == null || _shopData!['status'] != 'verified') return const SizedBox.shrink();
+    return _actionButton(
+      icon: Icons.shopping_bag_outlined,
+      label: _pendingOrdersCount > 0
+          ? 'Manage Orders ($_pendingOrdersCount pending)'
+          : 'Manage Orders',
+      bgColor: const Color(0xFFFF6A1A),
+      badgeCount: _pendingOrdersCount,
+      onPressed: () => Navigator.push(context,
+          MaterialPageRoute(builder: (_) => ShopkeeperOrdersScreen(shopId: _shopId!))),
+    );
+  }
+ 
+  // ✅ Reusable action button widget
+  Widget _actionButton({
 
   Widget _statChip({
     required IconData icon,
@@ -957,6 +1022,134 @@ class _ShopkeeperDashboardState extends State<ShopkeeperDashboard>
       ),
     );
   }
+ 
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: bgColor,
+ 
+      // ── UPDATED DRAWER ──
+      drawer: Drawer(
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+                topRight: Radius.circular(28), bottomRight: Radius.circular(28))),
+        child: Column(
+          children: [
+            // Drawer header — navy gradient
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 50, 20, 24),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [primaryNavy, lightNavy],
+                  begin: Alignment.topLeft, end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(0),
+                    bottomRight: Radius.circular(28)),
+              ),
+              child: Row(
+                children: [
+                  // Profile avatar
+                  GestureDetector(
+                    onTap: _pickAndUploadImage,
+                    child: Stack(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: accentOrange, width: 2.5),
+                          ),
+                          child: CircleAvatar(
+                            radius: 30,
+                            backgroundColor: Colors.white,
+                            backgroundImage: _profileImageUrl != null
+                                ? NetworkImage(_profileImageUrl!) : null,
+                            child: _profileImageUrl == null
+                                ? const Icon(Icons.person, color: primaryNavy, size: 30) : null,
+                          ),
+                        ),
+                        if (_isUploading)
+                          const Positioned.fill(child: CircularProgressIndicator(color: Colors.white)),
+                        Positioned(bottom: 0, right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(color: accentOrange, shape: BoxShape.circle),
+                            child: const Icon(Icons.camera_alt, color: Colors.white, size: 12),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(user?.displayName ?? 'Shopkeeper',
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                        const SizedBox(height: 3),
+                        Text(user?.email ?? '',
+                            style: const TextStyle(color: Colors.white70, fontSize: 12),
+                            overflow: TextOverflow.ellipsis),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Drawer items
+            _drawerItem(Icons.dashboard_outlined, 'Dashboard', () => Navigator.pop(context)),
+            _drawerItem(Icons.person_outline, 'View Profile', () {
+              Navigator.pop(context);
+              showDialog(context: context, builder: (_) => AlertDialog(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                content: Column(mainAxisSize: MainAxisSize.min, children: [
+                  CircleAvatar(radius: 50, backgroundImage: _profileImageUrl != null
+                      ? NetworkImage(_profileImageUrl!) : null,
+                      child: _profileImageUrl == null ? const Icon(Icons.person, size: 50) : null),
+                  const SizedBox(height: 15),
+                  Text(user?.displayName ?? 'Shopkeeper',
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: primaryNavy)),
+                  Text(user?.email ?? '', style: const TextStyle(color: Colors.grey)),
+                ]),
+                actions: [TextButton(onPressed: () => Navigator.pop(context),
+                    child: const Text('Close', style: TextStyle(color: accentOrange)))],
+              ));
+            }),
+            Divider(color: Colors.grey.shade200, height: 1),
+            _loading
+                ? const Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator(color: Color(0xFFFF6A1A)))
+                : _shopData != null
+                    ? _drawerItem(Icons.store_outlined, 'Your Shop', () {
+                        showDialog(context: context, builder: (_) => AlertDialog(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                          title: const Text('Shop Details', style: TextStyle(color: primaryNavy, fontWeight: FontWeight.bold)),
+                          content: Text('Name: ${_shopData!["shop_name"]}\nLocation: ${_shopData!["shop_location"]}\nContact: ${_shopData!["owner_contact"]}\nStatus: ${_shopData!["status"]}'),
+                          actions: [TextButton(onPressed: () => Navigator.pop(context),
+                              child: const Text('Close', style: TextStyle(color: accentOrange)))],
+                        ));
+                      })
+                    : _drawerItem(Icons.add_business_outlined, 'Register Shop', () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => ShopRegistrationPage()))
+                            .then((_) => _checkShop());
+                      }),
+            if (_shopData != null && _shopData!['status'] == 'verified') ...[
+              _drawerItem(Icons.shopping_bag_outlined, 'Manage Orders', () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => ShopkeeperOrdersScreen(shopId: _shopId!)));
+              }, badge: _pendingOrdersCount > 0 ? '$_pendingOrdersCount' : null, badgeColor: accentOrange),
+              _drawerItem(Icons.account_balance_wallet_outlined, 'Monthly Billing', () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => ShopkeeperBillingScreen()));
+              }, iconColor: _billingPaymentStatus == 'verified' ? Colors.green : Colors.red),
+            ],
+            const Spacer(),
+            Divider(color: Colors.grey.shade200),
+            _drawerItem(Icons.logout, 'Logout', _logout, iconColor: Colors.red, labelColor: Colors.red),
+            const SizedBox(height: 16),
 
   Widget _addProductButton() {
     if (_shopId == null || _shopData?['status'] != 'verified')
