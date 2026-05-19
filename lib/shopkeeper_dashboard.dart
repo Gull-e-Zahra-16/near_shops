@@ -286,7 +286,7 @@ class _ShopkeeperDashboardState extends State<ShopkeeperDashboard> {
       bgColor: btnColor,
       badgeDot: _billingPaymentStatus == 'unpaid' || _billingPaymentStatus == 'rejected',
       onPressed: () => Navigator.push(context,
-          MaterialPageRoute(builder: (_) => ShopkeeperBillingScreen(shopId: _shopId!))),
+          MaterialPageRoute(builder: (_) => ShopkeeperBillingScreen())),
     );
   }
  
@@ -524,7 +524,7 @@ class _ShopkeeperDashboardState extends State<ShopkeeperDashboard> {
               }, badge: _pendingOrdersCount > 0 ? '$_pendingOrdersCount' : null, badgeColor: accentOrange),
               _drawerItem(Icons.account_balance_wallet_outlined, 'Monthly Billing', () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => ShopkeeperBillingScreen(shopId: _shopId!)));
+                Navigator.push(context, MaterialPageRoute(builder: (_) => ShopkeeperBillingScreen()));
               }, iconColor: _billingPaymentStatus == 'verified' ? Colors.green : Colors.red),
             ],
             const Spacer(),
